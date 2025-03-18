@@ -44,7 +44,7 @@ const WelcomeView = () => {
 					padding: "0 20px",
 					overflow: "auto",
 				}}>
-				<h2>Hi, I'm Cline</h2>
+				<h2>Hi, I'm Cline for DGITS</h2>
 				<div style={{ display: "flex", justifyContent: "center", margin: "20px 0" }}>
 					<ClineLogo />
 				</div>

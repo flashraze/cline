@@ -8,14 +8,15 @@ import pWaitFor from "p-wait-for"
 import * as path from "path"
 import * as vscode from "vscode"
 import { buildApiHandler } from "../../api"
+import { cleanupLegacyCheckpoints } from "../../integrations/checkpoints/CheckpointMigration"
 import { downloadTask } from "../../integrations/misc/export-markdown"
-import { openFile, openImage } from "../../integrations/misc/open-file"
 import { fetchOpenGraphData, isImageUrl } from "../../integrations/misc/link-preview"
+import { openFile, openImage } from "../../integrations/misc/open-file"
 import { selectImages } from "../../integrations/misc/process-images"
 import { getTheme } from "../../integrations/theme/getTheme"
 import WorkspaceTracker from "../../integrations/workspace/WorkspaceTracker"
 import { McpHub } from "../../services/mcp/McpHub"
-import { UserInfo } from "../../shared/UserInfo"
+import { telemetryService } from "../../services/telemetry/TelemetryService"
 import { ApiConfiguration, ApiProvider, ModelInfo } from "../../shared/api"
 import { findLast } from "../../shared/array"
 import { AutoApprovalSettings, DEFAULT_AUTO_APPROVAL_SETTINGS } from "../../shared/AutoApprovalSettings"
@@ -25,6 +26,8 @@ import { ChatSettings, DEFAULT_CHAT_SETTINGS } from "../../shared/ChatSettings"
 import { ExtensionMessage, ExtensionState, Invoke, Platform } from "../../shared/ExtensionMessage"
 import { HistoryItem } from "../../shared/HistoryItem"
 import { McpDownloadResponse, McpMarketplaceCatalog, McpServer } from "../../shared/mcp"
+import { TelemetrySetting } from "../../shared/TelemetrySetting"
+import { UserInfo } from "../../shared/UserInfo"
 import { ClineCheckpointRestore, WebviewMessage } from "../../shared/WebviewMessage"
 import { fileExistsAtPath } from "../../utils/fs"
 import { searchCommits } from "../../utils/git"
@@ -32,10 +35,6 @@ import { Cline } from "../Cline"
 import { openMention } from "../mentions"
 import { getNonce } from "./getNonce"
 import { getUri } from "./getUri"
-import { telemetryService } from "../../services/telemetry/TelemetryService"
-import { TelemetrySetting } from "../../shared/TelemetrySetting"
-import { cleanupLegacyCheckpoints } from "../../integrations/checkpoints/CheckpointMigration"
-import CheckpointTracker from "../../integrations/checkpoints/CheckpointTracker"
 
 /*
 https://github.com/microsoft/vscode-webview-ui-toolkit-samples/blob/main/default/weather-webview/src/providers/WeatherViewProvider.ts
@@ -118,8 +117,8 @@ export const GlobalFileNames = {
 }
 
 export class ClineProvider implements vscode.WebviewViewProvider {
-	public static readonly sideBarId = "claude-dev.SidebarProvider" // used in package.json as the view's id. This value cannot be changed due to how vscode caches views based on their id, and updating the id would break existing instances of the extension.
-	public static readonly tabPanelId = "claude-dev.TabPanelProvider"
+	public static readonly sideBarId = "claude-dev-dgits.SidebarProvider" // used in package.json as the view's id. This value cannot be changed due to how vscode caches views based on their id, and updating the id would break existing instances of the extension.
+	public static readonly tabPanelId = "claude-dev-dgits.TabPanelProvider"
 	private static activeInstances: Set<ClineProvider> = new Set()
 	private disposables: vscode.Disposable[] = []
 	private view?: vscode.WebviewView | vscode.WebviewPanel
@@ -863,7 +862,7 @@ export class ClineProvider implements vscode.WebviewViewProvider {
 						const settingsFilter = message.text || ""
 						await vscode.commands.executeCommand(
 							"workbench.action.openSettings",
-							`@ext:saoudrizwan.claude-dev ${settingsFilter}`.trim(), // trim whitespace if no settings filter
+							`@ext:bartek.claude-dev-dgits ${settingsFilter}`.trim(), // trim whitespace if no settings filter
 						)
 						break
 					}
